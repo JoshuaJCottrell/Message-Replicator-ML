@@ -15,6 +15,6 @@ public abstract class Function {
 	 * @param x
 	 * @return f(x)
 	 */
-	public abstract double perform(float x);
+	public abstract float perform(float x);
 	
 }
