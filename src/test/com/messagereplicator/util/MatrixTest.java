@@ -99,10 +99,10 @@ class MatrixTest {
 
 	@Test
 	void testMap() {
-		Function function1 = new Function() {
+		Function<Float> function1 = new Function<Float>() {
 			@Override
-			public float perform(float x) {
-				return 2 * x + 1;
+			public Float perform(Float... x) {
+				return 2 * x[0] + 1;
 			}
 		};
 

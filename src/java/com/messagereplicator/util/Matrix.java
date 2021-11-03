@@ -58,6 +58,33 @@ public class Matrix {
 	}
 
 	/**
+	 * Subtracts the corresponding the values within the current and other matrices to
+	 * form a new matrix
+	 * 
+	 * @param otherMatrix
+	 * @return The new matrix formed from adding the two matrices
+	 */
+	public Matrix sub(Matrix otherMatrix) {
+		int[] thisSize = this.size();
+		int[] otherSize = otherMatrix.size();
+
+		if (!(thisSize[0] == otherSize[0] && thisSize[1] == otherSize[1])) {
+			throw new IllegalArgumentException("The matrices must be the same size!");
+		}
+
+		float[][] newValues = new float[thisSize[0]][thisSize[1]];
+
+		for (int row = 0; row < thisSize[0]; row++) {
+			for (int column = 0; column < thisSize[1]; column++) {
+				newValues[row][column] = this.get(row, column) - otherMatrix.get(row, column);
+			}
+		}
+
+		return new Matrix(newValues);
+	}
+	
+
+	/**
 	 * Multiplies the corresponding the values within the current and other matrices
 	 * to form a new matrix
 	 * 
@@ -91,10 +118,10 @@ public class Matrix {
 	 * @return The new matrix formed from multiplying the matrix with the scalar
 	 */
 	public Matrix multiply(float scalar) {
-		Function multiplyFunction = new Function() {
+		Function<Float> multiplyFunction = new Function<Float>() {
 			@Override
-			public float perform(float x) {
-				return x * scalar;
+			public Float perform(Float... x) {
+				return x[0] * scalar;
 			}
 		};
 
@@ -116,7 +143,7 @@ public class Matrix {
 			throw new IllegalArgumentException("The amount of columns in this matrix must be equal to the amount of rows in the other matrix");
 		}
 
-		float[][] newValues = new float[otherSize[1]][thisSize[0]];
+		float[][] newValues = new float[thisSize[0]][otherSize[1]];
 
 		for (int newColumn = 0; newColumn < otherSize[1]; newColumn++) {
 			for (int newRow = 0; newRow < thisSize[0]; newRow++) {
@@ -136,7 +163,7 @@ public class Matrix {
 	 * @param function
 	 * @return The new matrix performed by mapping the function onto the matrix
 	 */
-	public Matrix map(Function function) {
+	public Matrix map(Function<Float> function) {
 		int[] size = this.size();
 
 		float[][] newValues = new float[size[0]][size[1]];
@@ -198,7 +225,9 @@ public class Matrix {
 
 		for (int row = 0; row < thisSize[0]; row++) {
 			for (int column = 0; column < thisSize[1]; column++) {
-				if (this.get(row, column) != otherMatrix.get(row, column)) {
+				float diff = Math.abs(this.get(row, column) - otherMatrix.get(row, column));
+				
+				if (diff > 0.000001f) {
 					return false;
 				}
 			}
