@@ -56,7 +56,7 @@ public class NeuralNetwork {
 			int curLayer = layers[layerIndex];
 			int nextLayer = layers[layerIndex + 1];
 
-			matrices[layerIndex] = new Matrix(nextLayer, curLayer);
+			matrices[layerIndex] = initWeight(curLayer, nextLayer);
 		}
 
 		return matrices;
@@ -73,10 +73,10 @@ public class NeuralNetwork {
 		Random random = new Random();
 		float stdev = (float) Math.sqrt(1f / curLayer);
 
-		float[][] weightValues = new float[curLayer][nextLayer];
-		
-		for (int y = 0; y < curLayer; y++) {
-			for (int x = 0; x < nextLayer; x++) {
+		float[][] weightValues = new float[nextLayer][curLayer];
+
+		for (int y = 0; y < nextLayer; y++) {
+			for (int x = 0; x < curLayer; x++) {
 				weightValues[y][x] = (float) (random.nextGaussian() * stdev);
 			}
 		}
@@ -105,12 +105,10 @@ public class NeuralNetwork {
 
 				Matrix[] layers = getLayers(input);
 
-				Matrix realOutput = layers[layers.length - 1].map(configs.getActivationFunction(layers.length));
-
 				// May be added later in logging
 				// Matrix costs = configs.costFunction.perform(expectedOutput, realOutput);
 
-				Matrix[] deltas = calculateDeltas(expectedOutput, realOutput, layers);
+				Matrix[] deltas = calculateDeltas(expectedOutput, layers);
 
 				updateWeightsBiases(deltas, layers);
 			}
@@ -118,7 +116,7 @@ public class NeuralNetwork {
 
 	}
 
-	private void updateWeightsBiases(Matrix[] deltas, Matrix[] layers) {
+	protected void updateWeightsBiases(Matrix[] deltas, Matrix[] layers) {
 		float trainingRate = configs.trainingRate;
 
 		for (int weightIndex = 0; weightIndex < weights.length; weightIndex++) {
@@ -128,7 +126,9 @@ public class NeuralNetwork {
 			Matrix layer = layers[weightIndex].map(configs.getActivationFunction(weightIndex));
 			Matrix delta = deltas[weightIndex];
 
-			Matrix newWeights = curWeights.sub(layer.multiply(delta).multiply(trainingRate));
+			Matrix dWeight = delta.dot(layer.T()).multiply(trainingRate);
+			
+			Matrix newWeights = curWeights.sub(dWeight);
 			Matrix newBiases = curBiases.sub(delta.multiply(trainingRate));
 
 			this.weights[weightIndex] = newWeights;
@@ -136,8 +136,10 @@ public class NeuralNetwork {
 		}
 	}
 
-	private Matrix[] calculateDeltas(Matrix expectedOutput, Matrix realOutput, Matrix[] layers) {
+	protected Matrix[] calculateDeltas(Matrix expectedOutput, Matrix[] layers) {
 		Matrix[] deltas = new Matrix[layers.length - 1];
+		
+		Matrix realOutput = layers[layers.length - 1].map(configs.getActivationFunction(layers.length - 1));
 
 		Matrix costDeriv = configs.costFunctionDeriv.perform(expectedOutput, realOutput);
 		Matrix outLayer = layers[layers.length - 1];
@@ -190,4 +192,11 @@ public class NeuralNetwork {
 		return weights[layer].dot(mappedLayer).add(biases[layer]);
 	}
 
+	/**
+	 * @return The configs of the neural network
+	 */
+	protected NNConfigs getConfigs() {
+		return configs;
+	}
+	
 }
